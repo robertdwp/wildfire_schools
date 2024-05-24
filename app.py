@@ -138,6 +138,9 @@ def update_chart(selected_county):
 
     return fig
 
+# Define the server
+server = app.server
+
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
