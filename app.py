@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Load the datasets
-incidents_df = pd.read_csv('wf_incidents.csv')
+incidents_df = pd.read_csv('ics209-plus-wf_incidents_1999to2020.csv')
 county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020.csv')
 disaster_days_df = pd.read_csv('disasterDays_final.csv')
 enrollment_df = pd.read_excel('county enrollment.xlsx')
@@ -140,5 +140,4 @@ def update_chart(selected_county):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
-
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
