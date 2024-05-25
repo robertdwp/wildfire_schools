@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -6,7 +7,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Load the datasets
-incidents_df = pd.read_csv('wf_incidents.csv')
+incidents_df = pd.read_csv('ics209-plus-wf_incidents_1999to2020.csv')
 county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020.csv')
 disaster_days_df = pd.read_csv('disasterDays_final.csv')
 enrollment_df = pd.read_excel('county enrollment.xlsx')
@@ -69,9 +70,9 @@ merged_df_california = merged_df_california[(merged_df_california['YEAR'] >= 200
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
 
 # Calculate global min and max for standardizing y-axis scales
-global_students_min = merged_df_california['INCIDENT_ID'].min()
-global_students_max = merged_df_california['INCIDENT_ID'].max()
-global_days_min = county_agg_df['days_per_student'].min()
+global_students_min = 0
+global_students_max = merged_df_california.groupby('YEAR')['INCIDENT_ID'].sum().max()
+global_days_min = 0
 global_days_max = county_agg_df['days_per_student'].max()
 
 # Initialize the Dash app
@@ -122,8 +123,8 @@ def update_chart(selected_county):
         title='Impact of Wildfires on Instructional Days and Students Affected (2002-2018)',
         xaxis_title='Year',
         xaxis=dict(range=[2002, 2018]),
-        yaxis=dict(title='Students Affected', range=[0, global_students_max]),
-        yaxis2=dict(title='Instructional Days Lost per Student', range=[0, global_days_max]),
+        yaxis=dict(title='Students Affected', range=[global_students_min, global_students_max]),
+        yaxis2=dict(title='Instructional Days Lost per Student', range=[global_days_min, global_days_max]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
@@ -132,4 +133,5 @@ def update_chart(selected_county):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    port = int(os.environ.get('PORT', 8050))
+    app.run_server(debug=True, port=port, host='0.0.0.0')
