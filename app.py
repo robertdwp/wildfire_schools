@@ -1,14 +1,136 @@
 from dash import Dash, html
+import pandas as pd
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 
-print("Initializing app...")
-app = Dash(__name__)
+# Load the datasets
+incidents_df = pd.read_csv('wf_incidents.csv')
+county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020.csv')
+disaster_days_df = pd.read_csv('disasterDays_final.csv')
+enrollment_df = pd.read_excel('county enrollment.xlsx')
+
+# Transform the enrollment dataframe
+enrollment_df = enrollment_df.melt(id_vars=['County'], var_name='year', value_name='enrollment')
+enrollment_df['year'] = enrollment_df['year'].apply(lambda x: int(x.split('-')[0]))
+
+# Rename columns for consistency
+enrollment_df.rename(columns={'County': 'county'}, inplace=True)
+
+# Ensure 'year' and 'county' columns are treated as lowercase in disaster days dataframe
+disaster_days_df['county'] = disaster_days_df['county'].str.lower()
+enrollment_df['county'] = enrollment_df['county'].str.lower()
+
+# Ensure 'year' column is treated as integer in disaster days dataframe
+disaster_days_df['year'] = disaster_days_df['year'].astype(int)
+
+# Debug: Print column names before merging
+print("Disaster Days DataFrame columns:", disaster_days_df.columns)
+print("Enrollment DataFrame columns:", enrollment_df.columns)
+
+# Merge disaster days dataframe with enrollment dataframe
+disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
+
+# Debug: Print column names after merging
+print("Merged DataFrame columns:", disaster_enrollment_df.columns)
+
+# Rename columns for clarity
+disaster_enrollment_df.rename(columns={'enrollment_x': 'school_enrollment', 'enrollment_y': 'county_enrollment'}, inplace=True)
+
+# Calculate the total instructional days lost per school
+disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['school_enrollment']
+
+# Aggregate the total days lost and enrollment at the county level
+county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
+    total_days_lost=pd.NamedAgg(column='total_days_lost_school', aggfunc='sum'),
+    total_enrollment=pd.NamedAgg(column='school_enrollment', aggfunc='sum')
+).reset_index()
+
+# Calculate average instructional days lost per student at the county level
+county_agg_df['days_per_student'] = county_agg_df['total_days_lost'] / county_agg_df['total_enrollment']
+
+# Define the list of California counties
+california_counties = [
+    'Alameda', 'Alpine', 'Amador', 'Butte', 'Calaveras', 'Colusa', 'Contra Costa', 'Del Norte', 'El Dorado', 'Fresno', 
+    'Glenn', 'Humboldt', 'Imperial', 'Inyo', 'Kern', 'Kings', 'Lake', 'Lassen', 'Los Angeles', 'Madera', 'Marin', 
+    'Mariposa', 'Mendocino', 'Merced', 'Modoc', 'Mono', 'Monterey', 'Napa', 'Nevada', 'Orange', 'Placer', 'Plumas', 
+    'Riverside', 'Sacramento', 'San Benito', 'San Bernardino', 'San Diego', 'San Francisco', 'San Joaquin', 
+    'San Luis Obispo', 'San Mateo', 'Santa Barbara', 'Santa Clara', 'Santa Cruz', 'Shasta', 'Sierra', 'Siskiyou', 
+    'Solano', 'Sonoma', 'Stanislaus', 'Sutter', 'Tehama', 'Trinity', 'Tulare', 'Tuolumne', 'Ventura', 'Yolo', 'Yuba'
+]
+
+# Filter the merged dataframe for California counties and years 2002 to 2018
+county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower()
+merged_df_california = county_incidents_df[county_incidents_df['COUNTY_NAME'].apply(lambda x: any(ca in x for ca in california_counties))]
+merged_df_california = merged_df_california[(merged_df_california['YEAR'] >= 2002) & (merged_df_california['YEAR'] <= 2018)]
+
+# Filter the instructional days lost dataframe for years 2002 to 2018
+county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
+
+# Calculate global min and max for standardizing y-axis scales
+global_students_min = 0
+global_students_max = enrollment_df[enrollment_df['year'] == 2018]['enrollment'].sum()
+global_days_min = 0
+global_days_max = county_agg_df['days_per_student'].max()
+
+# Initialize the Dash app
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
-print("Setting layout...")
-app.layout = html.Div("Hello, world!")
+# Layout of the app
+app.layout = dbc.Container([
+    html.H1('Impact of Wildfires on Instructional Days and Students Affected'),
+    html.Label('Select County:'),
+    dcc.Dropdown(
+        id='county-dropdown',
+        options=[{'label': county.title(), 'value': county.title()} for county in california_counties],
+        value='Alameda'  # Default value
+    ),
+    dcc.Graph(id='wildfire-chart')
+], fluid=True)
+
+# Callback to update the chart based on selected county
+@app.callback(
+    Output('wildfire-chart', 'figure'),
+    [Input('county-dropdown', 'value')]
+)
+def update_chart(selected_county):
+    # Filter the data for the selected county
+    county_data = merged_df_california[merged_df_california['COUNTY_NAME'].str.contains(selected_county, na=False, case=False)]
+    disaster_data = county_agg_df[county_agg_df['county'].str.contains(selected_county.lower(), na=False)]
+
+    # Aggregate the students affected data by year
+    agg_df = disaster_enrollment_df[disaster_enrollment_df['county'] == selected_county.lower()].groupby('year').agg(
+        total_students=pd.NamedAgg(column='school_enrollment', aggfunc='sum')
+    ).reset_index()
+
+    # Merge with disaster days data
+    plot_df = pd.merge(agg_df, disaster_data, left_on='year', right_on='year', how='left').fillna(0)
+
+    # Create the plot
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Bar(x=plot_df['year'], y=plot_df['total_students'], name='Students Affected', marker_color='orange'),
+        secondary_y=False
+    )
+    fig.add_trace(
+        go.Scatter(x=plot_df['year'], y=plot_df['days_per_student'], name='Instructional Days Lost per Student', marker=dict(color='blue')),
+        secondary_y=True
+    )
+
+    # Add figure title and labels
+    fig.update_layout(
+        title='Impact of Wildfires on Instructional Days and Students Affected (2002-2018)',
+        xaxis_title='Year',
+        xaxis=dict(range=[2002, 2018]),
+        yaxis=dict(title='Students Affected', range=[global_students_min, global_students_max]),
+        yaxis2=dict(title='Instructional Days Lost per Student', range=[global_days_min, global_days_max]),
+        legend=dict(x=0.01, y=0.99),
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    return fig
 
 if __name__ == '__main__':
-    print("Running server...")
     app.run_server(debug=True, host='0.0.0.0', port=8050)
-
-# This is a test comment to trigger a change
