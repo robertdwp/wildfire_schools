@@ -26,8 +26,15 @@ enrollment_df['county'] = enrollment_df['county'].str.lower()
 # Ensure 'year' column is treated as integer in disaster days dataframe
 disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 
+# Check the columns before merging
+print("Disaster Days DataFrame columns:", disaster_days_df.columns)
+print("Enrollment DataFrame columns:", enrollment_df.columns)
+
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
+
+# Check the columns after merging
+print("Merged DataFrame columns:", disaster_enrollment_df.columns)
 
 # Rename columns for clarity
 disaster_enrollment_df.rename(columns={'enrollment': 'county_enrollment'}, inplace=True)
