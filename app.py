@@ -37,7 +37,7 @@ disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', '
 print("Merged DataFrame columns:", disaster_enrollment_df.columns)
 
 # Rename columns for clarity
-disaster_enrollment_df.rename(columns={'enrollment': 'county_enrollment'}, inplace=True)
+disaster_enrollment_df.rename(columns={'enrollment_y': 'county_enrollment'}, inplace=True)
 
 # Ensure the correct columns are numeric
 disaster_enrollment_df['days'] = pd.to_numeric(disaster_enrollment_df['days'], errors='coerce')
