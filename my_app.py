@@ -79,6 +79,10 @@ merged_df_california = county_incidents_df[
 # Print out debug information
 print("Filtered merged_df_california:", merged_df_california.head())
 
+# Print out information about the filter process
+print("Number of rows in county_incidents_df before filtering:", len(county_incidents_df))
+print("Number of rows in county_incidents_df after filtering:", len(merged_df_california))
+
 # Filter the instructional days lost dataframe for years 2002 to 2018
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
 
