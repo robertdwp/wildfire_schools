@@ -63,7 +63,7 @@ california_counties = [
 ]
 
 # Convert to lowercase for matching
-county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower()
+county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower().str.replace(' county', '')
 
 # Print out the unique values in COUNTY_NAME for inspection
 print("Unique COUNTY_NAME values in county_incidents_df:", county_incidents_df['COUNTY_NAME'].unique()[:50])  # Print only first 50 for brevity
