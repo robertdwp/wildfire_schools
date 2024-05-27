@@ -145,10 +145,6 @@ def update_chart(selected_county):
 
     # Add figure title and labels
     fig.update_layout(
-        title='Impact of Wil
-
-    # Add figure title and labels
-    fig.update_layout(
         title='Impact of Wildfires on Instructional Days and Students Affected (2002-2018)',
         xaxis_title='Year',
         xaxis=dict(range=[2002, 2018]),
