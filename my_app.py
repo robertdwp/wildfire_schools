@@ -66,10 +66,13 @@ california_counties = [
 county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower()
 
 # Print out the unique values in COUNTY_NAME for inspection
-print("Unique COUNTY_NAME values in county_incidents_df:", county_incidents_df['COUNTY_NAME'].unique())
+print("Unique COUNTY_NAME values in county_incidents_df:", county_incidents_df['COUNTY_NAME'].unique()[:50])  # Print only first 50 for brevity
+
+# Check if all California counties are correctly formatted in the dataframe
+california_counties_lower = [county.lower() for county in california_counties]
+print("California counties (lowercase):", california_counties_lower)
 
 # Filter the merged dataframe for California counties and years 2002 to 2018
-california_counties_lower = [county.lower() for county in california_counties]
 merged_df_california = county_incidents_df[
     (county_incidents_df['COUNTY_NAME'].isin(california_counties_lower)) & 
     (county_incidents_df['YEAR'] >= 2002) & 
@@ -78,8 +81,6 @@ merged_df_california = county_incidents_df[
 
 # Print out debug information
 print("Filtered merged_df_california:", merged_df_california.head())
-
-# Print out information about the filter process
 print("Number of rows in county_incidents_df before filtering:", len(county_incidents_df))
 print("Number of rows in county_incidents_df after filtering:", len(merged_df_california))
 
@@ -141,6 +142,10 @@ def update_chart(selected_county):
         go.Scatter(x=plot_df['Year'], y=plot_df['days_per_student'], name='Instructional Days Lost per Student', marker=dict(color='blue')),
         secondary_y=True
     )
+
+    # Add figure title and labels
+    fig.update_layout(
+        title='Impact of Wil
 
     # Add figure title and labels
     fig.update_layout(
