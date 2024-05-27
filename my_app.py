@@ -89,7 +89,7 @@ county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['
 
 # Calculate global min and max for standardizing y-axis scales
 global_students_min = 0
-global_students_max = merged_df_california.groupby('YEAR')['INCIDENT_ID'].sum().max()
+global_students_max = enrollment_df[enrollment_df['year'] == 2018]['enrollment'].max()
 global_days_min = 0
 global_days_max = county_agg_df['days_per_student'].max()
 
@@ -117,10 +117,12 @@ def update_chart(selected_county):
     # Filter the data for the selected county
     county_data = merged_df_california[merged_df_california['COUNTY_NAME'].str.contains(selected_county.lower(), na=False)]
     disaster_data = county_agg_df[county_agg_df['county'].str.contains(selected_county.lower(), na=False)]
+    enrollment_data = enrollment_df[(enrollment_df['county'] == selected_county.lower()) & (enrollment_df['year'] == 2018)]
 
     # Print debug info
     print(f"county_data for {selected_county}:", county_data)
     print(f"disaster_data for {selected_county}:", disaster_data)
+    print(f"enrollment_data for {selected_county}:", enrollment_data)
 
     # Aggregate the students affected data by year
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].sum().reset_index()
