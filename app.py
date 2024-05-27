@@ -7,7 +7,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Load the datasets
-incidents_df = pd.read_csv('wf_incidents.csv')
+incidents_df = pd.read_csv('ics209-plus-wf_incidents_1999to2020.csv')
 county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020.csv')
 disaster_days_df = pd.read_csv('disasterDays_final.csv')
 enrollment_df = pd.read_excel('county enrollment.xlsx')
@@ -26,15 +26,8 @@ enrollment_df['county'] = enrollment_df['county'].str.lower()
 # Ensure 'year' column is treated as integer in disaster days dataframe
 disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 
-# Check the columns before merging
-print("Disaster Days DataFrame columns:", disaster_days_df.columns)
-print("Enrollment DataFrame columns:", enrollment_df.columns)
-
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
-
-# Check the columns after merging
-print("Merged DataFrame columns:", disaster_enrollment_df.columns)
 
 # Rename columns for clarity
 disaster_enrollment_df.rename(columns={'enrollment_y': 'county_enrollment'}, inplace=True)
@@ -138,7 +131,9 @@ def update_chart(selected_county):
 
     return fig
 
-# Run the app
+# Entry point for Gunicorn
+application = app.server
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))
     app.run_server(debug=True, port=port, host='0.0.0.0')
