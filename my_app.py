@@ -12,16 +12,6 @@ county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020
 disaster_days_df = pd.read_csv('disasterDays_final.csv')
 enrollment_df = pd.read_excel('county enrollment.xlsx')
 
-# Debugging: Print first few rows of each dataframe
-print("incidents_df:")
-print(incidents_df.head())
-print("county_incidents_df:")
-print(county_incidents_df.head())
-print("disaster_days_df:")
-print(disaster_days_df.head())
-print("enrollment_df:")
-print(enrollment_df.head())
-
 # Transform the enrollment dataframe
 enrollment_df = enrollment_df.melt(id_vars=['County'], var_name='year', value_name='enrollment')
 enrollment_df['year'] = enrollment_df['year'].apply(lambda x: int(x.split('-')[0]))
@@ -62,10 +52,6 @@ county_agg_df['total_enrollment'] = pd.to_numeric(county_agg_df['total_enrollmen
 # Calculate average instructional days lost per student at the county level
 county_agg_df['days_per_student'] = county_agg_df['total_days_lost'] / county_agg_df['total_enrollment']
 
-# Debugging: Print first few rows of the aggregated dataframe
-print("county_agg_df:")
-print(county_agg_df.head())
-
 # Define the list of California counties
 california_counties = [
     'Alameda', 'Alpine', 'Amador', 'Butte', 'Calaveras', 'Colusa', 'Contra Costa', 'Del Norte', 'El Dorado', 'Fresno', 
@@ -76,13 +62,19 @@ california_counties = [
     'Solano', 'Sonoma', 'Stanislaus', 'Sutter', 'Tehama', 'Trinity', 'Tulare', 'Tuolumne', 'Ventura', 'Yolo', 'Yuba'
 ]
 
-# Filter the merged dataframe for California counties and years 2002 to 2018
-merged_df_california = county_incidents_df[county_incidents_df['COUNTY_NAME'].str.lower().apply(lambda x: any(ca in str(x) for ca in california_counties))]
-merged_df_california = merged_df_california[(merged_df_california['YEAR'] >= 2002) & (merged_df_california['YEAR'] <= 2018)]
+# Convert to lowercase for matching
+county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower()
 
-# Debugging: Print first few rows of the filtered dataframe
-print("merged_df_california:")
-print(merged_df_california.head())
+# Filter the merged dataframe for California counties and years 2002 to 2018
+california_counties_lower = [county.lower() for county in california_counties]
+merged_df_california = county_incidents_df[
+    (county_incidents_df['COUNTY_NAME'].isin(california_counties_lower)) & 
+    (county_incidents_df['YEAR'] >= 2002) & 
+    (county_incidents_df['YEAR'] <= 2018)
+]
+
+# Print out debug information
+print("Filtered merged_df_california:", merged_df_california.head())
 
 # Filter the instructional days lost dataframe for years 2002 to 2018
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
@@ -115,14 +107,12 @@ app.layout = dbc.Container([
 )
 def update_chart(selected_county):
     # Filter the data for the selected county
-    county_data = merged_df_california[merged_df_california['COUNTY_NAME'].str.contains(selected_county, na=False, case=False)]
+    county_data = merged_df_california[merged_df_california['COUNTY_NAME'].str.contains(selected_county.lower(), na=False)]
     disaster_data = county_agg_df[county_agg_df['county'].str.contains(selected_county.lower(), na=False)]
 
-    # Debugging: Print the filtered data for the selected county
-    print(f"county_data for {selected_county}:")
-    print(county_data)
-    print(f"disaster_data for {selected_county}:")
-    print(disaster_data)
+    # Print debug info
+    print(f"county_data for {selected_county}:", county_data)
+    print(f"disaster_data for {selected_county}:", disaster_data)
 
     # Aggregate the students affected data by year
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].sum().reset_index()
@@ -131,9 +121,8 @@ def update_chart(selected_county):
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
 
-    # Debugging: Print the merged plot dataframe
-    print(f"plot_df for {selected_county}:")
-    print(plot_df)
+    # Print debug info
+    print(f"plot_df for {selected_county}:", plot_df)
 
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -165,4 +154,3 @@ application = app.server
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))
     app.run_server(debug=True, port=port, host='0.0.0.0')
-
