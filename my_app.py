@@ -65,6 +65,9 @@ california_counties = [
 # Convert to lowercase for matching
 county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower()
 
+# Print out the unique values in COUNTY_NAME for inspection
+print("Unique COUNTY_NAME values in county_incidents_df:", county_incidents_df['COUNTY_NAME'].unique())
+
 # Filter the merged dataframe for California counties and years 2002 to 2018
 california_counties_lower = [county.lower() for county in california_counties]
 merged_df_california = county_incidents_df[
