@@ -7,7 +7,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Load the datasets
-incidents_df = pd.read_csv('ics209-plus-wf_incidents_1999to2020.csv')
+incidents_df = pd.read_csv('wf_incidents.csv')
 county_incidents_df = pd.read_csv('ics209-plus-wf_incidents_by_county_1999to2020.csv')
 disaster_days_df = pd.read_csv('disasterDays_final.csv')
 enrollment_df = pd.read_excel('county enrollment.xlsx')
