@@ -112,8 +112,14 @@ def update_chart(selected_county):
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
     agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
 
+    print("Debug: agg_df")
+    print(agg_df.head())
+
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
+
+    print("Debug: plot_df")
+    print(plot_df.head())
 
     # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
     enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
