@@ -35,15 +35,15 @@ print(disaster_enrollment_df.columns)
 
 # Ensure the correct columns are numeric
 disaster_enrollment_df['days'] = pd.to_numeric(disaster_enrollment_df['days'], errors='coerce')
-disaster_enrollment_df['enrollment'] = pd.to_numeric(disaster_enrollment_df['enrollment'], errors='coerce')
+disaster_enrollment_df['enrollment_y'] = pd.to_numeric(disaster_enrollment_df['enrollment_y'], errors='coerce')
 
 # Calculate the total instructional days lost per school
-disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment']
+disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment_y']
 
 # Aggregate the total days lost and enrollment at the county level
 county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_days_lost=pd.NamedAgg(column='total_days_lost_school', aggfunc='sum'),
-    total_enrollment=pd.NamedAgg(column='enrollment', aggfunc='sum')
+    total_enrollment=pd.NamedAgg(column='enrollment_y', aggfunc='sum')
 ).reset_index()
 
 # Ensure the aggregated columns are numeric
