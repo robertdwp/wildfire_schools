@@ -29,6 +29,10 @@ disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
+# Debug: Show the merged dataframe
+print("Debug: disaster_enrollment_df after merge")
+print(disaster_enrollment_df.head())
+
 # Rename columns for clarity
 disaster_enrollment_df.rename(columns={'enrollment': 'county_enrollment'}, inplace=True)
 
@@ -44,6 +48,10 @@ county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_days_lost=pd.NamedAgg(column='total_days_lost_school', aggfunc='sum'),
     total_enrollment=pd.NamedAgg(column='county_enrollment', aggfunc='sum')
 ).reset_index()
+
+# Debug: Show the aggregated dataframe
+print("Debug: county_agg_df")
+print(county_agg_df.head())
 
 # Calculate average instructional days lost per student at the county level
 county_agg_df['days_per_student'] = county_agg_df['total_days_lost'] / county_agg_df['total_enrollment']
@@ -117,7 +125,7 @@ def update_chart(selected_county):
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Bar(x=plot_df['Year'], y=plot_df['total_students_impacted'], name='Students Affected', marker_color='orange'),
+        go.Bar(x=plot_df['Year'], y=plot_df['Students_Affected'], name='Students Affected', marker_color='orange'),
         secondary_y=False
     )
     fig.add_trace(
