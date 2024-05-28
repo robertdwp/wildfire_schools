@@ -19,6 +19,10 @@ enrollment_df['year'] = enrollment_df['year'].apply(lambda x: int(x.split('-')[0
 # Rename columns for consistency
 enrollment_df.rename(columns={'County': 'county'}, inplace=True)
 
+# Debugging: Check the structure of enrollment_df
+print("Debug: enrollment_df")
+print(enrollment_df.head())
+
 # Ensure 'year' and 'county' columns are treated as lowercase in disaster days dataframe
 disaster_days_df['county'] = disaster_days_df['county'].str.lower()
 enrollment_df['county'] = enrollment_df['county'].str.lower()
@@ -26,17 +30,29 @@ enrollment_df['county'] = enrollment_df['county'].str.lower()
 # Ensure 'year' column is treated as integer in disaster days dataframe
 disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 
+# Debugging: Check the structure of disaster_days_df
+print("Debug: disaster_days_df")
+print(disaster_days_df.head())
+
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
-# Use the correct column name for enrollment after merge
-disaster_enrollment_df['students_impacted'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment_y']
+# Debugging: Check the structure of disaster_enrollment_df
+print("Debug: disaster_enrollment_df after merge")
+print(disaster_enrollment_df.head())
+
+# Use the correct column name for enrollment
+disaster_enrollment_df['students_impacted'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment']
 
 # Aggregate the total students impacted and enrollment at the county level
 county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_students_impacted=pd.NamedAgg(column='students_impacted', aggfunc='sum'),
-    total_enrollment=pd.NamedAgg(column='enrollment_y', aggfunc='sum')
+    total_enrollment=pd.NamedAgg(column='enrollment', aggfunc='sum')
 ).reset_index()
+
+# Debugging: Check the structure of county_agg_df
+print("Debug: county_agg_df after aggregation")
+print(county_agg_df.head())
 
 # Define the list of California counties
 california_counties = [
@@ -98,8 +114,14 @@ def update_chart(selected_county):
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
     agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
 
+    print("Debug: agg_df")
+    print(agg_df.head())
+
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
+
+    print("Debug: plot_df")
+    print(plot_df.head())
 
     # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
     enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
@@ -111,7 +133,7 @@ def update_chart(selected_county):
         secondary_y=False
     )
     fig.add_trace(
-        go.Scatter(x=plot_df['Year'], y=plot_df['total_enrollment'], name='Instructional Days Lost per Student', marker=dict(color='blue')),
+        go.Scatter(x=plot_df['Year'], y=plot_df['days_per_student'], name='Instructional Days Lost per Student', marker=dict(color='blue')),
         secondary_y=True
     )
 
