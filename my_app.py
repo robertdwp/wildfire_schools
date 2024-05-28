@@ -26,62 +26,64 @@ enrollment_df['county'] = enrollment_df['county'].str.lower()
 # Ensure 'year' column is treated as integer in disaster days dataframe
 disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 
+# Convert relevant columns to numeric, coercing errors to NaN
+disaster_days_df['days'] = pd.to_numeric(disaster_days_df['days'], errors='coerce')
+enrollment_df['enrollment'] = pd.to_numeric(enrollment_df['enrollment'], errors='coerce')
+
+# Filter the disaster days dataframe to only include wildfires
+wildfire_keywords = ['wildfire', 'fire']  # Add any other relevant keywords
+disaster_days_df = disaster_days_df[disaster_days_df['reason'].str.contains('|'.join(wildfire_keywords), case=False, na=False)]
+
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
-# Debug: Print the columns of disaster_enrollment_df after merge
-print("Debug: Columns of disaster_enrollment_df after merge")
-print(disaster_enrollment_df.columns)
+
+# Rename columns for clarity
+disaster_enrollment_df.rename(columns={'enrollment_x': 'school_enrollment', 'enrollment_y': 'county_enrollment'}, inplace=True)
 
 # Ensure the correct columns are numeric
 disaster_enrollment_df['days'] = pd.to_numeric(disaster_enrollment_df['days'], errors='coerce')
-disaster_enrollment_df['enrollment_y'] = pd.to_numeric(disaster_enrollment_df['enrollment_y'], errors='coerce')
+disaster_enrollment_df['school_enrollment'] = pd.to_numeric(disaster_enrollment_df['school_enrollment'], errors='coerce')
+disaster_enrollment_df['county_enrollment'] = pd.to_numeric(disaster_enrollment_df['county_enrollment'], errors='coerce')
 
 # Calculate the total instructional days lost per school
-disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment_y']
+disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['school_enrollment']
 
-# Aggregate the total days lost and enrollment at the county level
+# Aggregate the total days lost and enrollment for affected schools at the county level
 county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_days_lost=pd.NamedAgg(column='total_days_lost_school', aggfunc='sum'),
-    total_enrollment=pd.NamedAgg(column='enrollment_y', aggfunc='sum')
+    affected_enrollment=pd.NamedAgg(column='school_enrollment', aggfunc='sum')
 ).reset_index()
 
-# Ensure the aggregated columns are numeric
-county_agg_df['total_days_lost'] = pd.to_numeric(county_agg_df['total_days_lost'], errors='coerce')
-county_agg_df['total_enrollment'] = pd.to_numeric(county_agg_df['total_enrollment'], errors='coerce')
+# Calculate average instructional days lost per student for affected schools at the county level
+county_agg_df['days_per_student_affected'] = county_agg_df['total_days_lost'] / county_agg_df['affected_enrollment']
 
-# Calculate average instructional days lost per student at the county level
-county_agg_df['days_per_student'] = county_agg_df['total_days_lost'] / county_agg_df['total_enrollment']
+# Ensure we have data for all years 2002-2018 for each county
+years = list(range(2002, 2018 + 1))
+full_years_df = pd.DataFrame({'year': years})
+county_agg_full_df = pd.DataFrame()
+
+for county in county_agg_df['county'].unique():
+    county_data = county_agg_df[county_agg_df['county'] == county]
+    county_full_data = full_years_df.merge(county_data, on='year', how='left').fillna({'total_days_lost': 0, 'affected_enrollment': 0, 'days_per_student_affected': 0})
+    county_full_data['county'] = county
+    county_agg_full_df = pd.concat([county_agg_full_df, county_full_data])
+
+# Extract 2018 enrollment data for each county
+enrollment_2018_df = enrollment_df[enrollment_df['year'] == 2018][['county', 'enrollment']].set_index('county')
+
+# Debug: Print columns of county_incidents_df to check for correct column names
+print("County Incidents DataFrame columns:", county_incidents_df.columns)
 
 # Define the list of California counties
 california_counties = [
-    'Alameda', 'Alpine', 'Amador', 'Butte', 'Calaveras', 'Colusa', 'Contra Costa', 'Del Norte', 'El Dorado', 'Fresno', 
-    'Glenn', 'Humboldt', 'Imperial', 'Inyo', 'Kern', 'Kings', 'Lake', 'Lassen', 'Los Angeles', 'Madera', 'Marin', 
-    'Mariposa', 'Mendocino', 'Merced', 'Modoc', 'Mono', 'Monterey', 'Napa', 'Nevada', 'Orange', 'Placer', 'Plumas', 
-    'Riverside', 'Sacramento', 'San Benito', 'San Bernardino', 'San Diego', 'San Francisco', 'San Joaquin', 
-    'San Luis Obispo', 'San Mateo', 'Santa Barbara', 'Santa Clara', 'Santa Cruz', 'Shasta', 'Sierra', 'Siskiyou', 
-    'Solano', 'Sonoma', 'Stanislaus', 'Sutter', 'Tehama', 'Trinity', 'Tulare', 'Tuolumne', 'Ventura', 'Yolo', 'Yuba'
+    'alameda', 'alpine', 'amador', 'butte', 'calaveras', 'colusa', 'contra costa', 'del norte', 'el dorado', 'fresno', 
+    'glenn', 'humboldt', 'imperial', 'inyo', 'kern', 'kings', 'lake', 'lassen', 'los angeles', 'madera', 'marin', 
+    'mariposa', 'mendocino', 'merced', 'modoc', 'mono', 'monterey', 'napa', 'nevada', 'orange', 'placer', 'plumas', 
+    'riverside', 'sacramento', 'san benito', 'san bernardino', 'san diego', 'san francisco', 'san joaquin', 
+    'san luis obispo', 'san mateo', 'santa barbara', 'santa clara', 'santa cruz', 'shasta', 'sierra', 'siskiyou', 
+    'solano', 'sonoma', 'stanislaus', 'sutter', 'tehama', 'trinity', 'tulare', 'tuolumne', 'ventura', 'yolo', 'yuba'
 ]
-
-# Convert to lowercase for matching
-county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower().str.replace(' county', '')
-
-# Filter the merged dataframe for California counties and years 2002 to 2018
-california_counties_lower = [county.lower() for county in california_counties]
-merged_df_california = county_incidents_df[
-    (county_incidents_df['COUNTY_NAME'].isin(california_counties_lower)) & 
-    (county_incidents_df['YEAR'] >= 2002) & 
-    (county_incidents_df['YEAR'] <= 2018)
-]
-
-# Filter the instructional days lost dataframe for years 2002 to 2018
-county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
-
-# Calculate global min and max for standardizing y-axis scales
-global_students_min = 0
-global_students_max = enrollment_df[enrollment_df['year'] == 2018]['enrollment'].max()
-global_days_min = 0
-global_days_max = county_agg_df['days_per_student'].max()
 
 # Initialize the Dash app
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -104,35 +106,21 @@ app.layout = dbc.Container([
     [Input('county-dropdown', 'value')]
 )
 def update_chart(selected_county):
+    selected_county = selected_county.lower()
     # Filter the data for the selected county
-    county_data = merged_df_california[merged_df_california['COUNTY_NAME'] == selected_county.lower()]
-    disaster_data = county_agg_df[county_agg_df['county'] == selected_county.lower()]
-    enrollment_data = enrollment_df[(enrollment_df['county'] == selected_county.lower()) & (enrollment_df['year'] == 2018)]
+    disaster_data = county_agg_full_df[county_agg_full_df['county'].str.contains(selected_county, na=False)]
 
-    # Aggregate the students affected data by year
-    agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
-    agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
-
-    print("Debug: agg_df")
-    print(agg_df.head())
-
-    # Merge with disaster days data
-    plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
-
-    print("Debug: plot_df")
-    print(plot_df.head())
-
-    # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
-    enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
+    # Get the enrollment for the county in 2018
+    max_students_affected = enrollment_2018_df.loc[selected_county, 'enrollment'] if selected_county in enrollment_2018_df.index else 0
 
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Bar(x=plot_df['Year'], y=plot_df['Students_Affected'], name='Students Affected', marker_color='orange'),
+        go.Bar(x=disaster_data['year'], y=disaster_data['affected_enrollment'], name='Students Affected', marker_color='orange'),
         secondary_y=False
     )
     fig.add_trace(
-        go.Scatter(x=plot_df['Year'], y=plot_df['days_per_student'], name='Instructional Days Lost per Student', marker=dict(color='blue')),
+        go.Scatter(x=disaster_data['year'], y=disaster_data['days_per_student_affected'], name='Instructional Days Lost per Student (Affected Schools)', marker=dict(color='blue')),
         secondary_y=True
     )
 
@@ -140,9 +128,9 @@ def update_chart(selected_county):
     fig.update_layout(
         title='Impact of Wildfires on Instructional Days and Students Affected (2002-2018)',
         xaxis_title='Year',
-        xaxis=dict(range=[2002, 2018]),
-        yaxis=dict(title='Students Affected', range=[global_students_min, enrollment_2018]),
-        yaxis2=dict(title='Instructional Days Lost per Student', range=[global_days_min, global_days_max]),
+        xaxis=dict(tickmode='array', tickvals=years),
+        yaxis=dict(title='Students Affected', range=[0, max_students_affected]),
+        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, global_days_max]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
