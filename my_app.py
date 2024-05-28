@@ -84,6 +84,9 @@ california_counties = [
     'solano', 'sonoma', 'stanislaus', 'sutter', 'tehama', 'trinity', 'tulare', 'tuolumne', 'ventura', 'yolo', 'yuba'
 ]
 
+# Calculate global min and max for standardizing y-axis scales
+global_days_max = instructional_days_lost['days'].max()
+
 # Initialize the Dash app
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -129,7 +132,7 @@ def update_chart(selected_county):
         xaxis_title='Year',
         xaxis=dict(tickmode='array', tickvals=years),
         yaxis=dict(title='Students Affected', range=[0, max_students_affected]),
-        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, max_students_affected]),
+        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, global_days_max]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
