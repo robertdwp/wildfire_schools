@@ -65,24 +65,13 @@ california_counties = [
 # Convert to lowercase for matching
 county_incidents_df['COUNTY_NAME'] = county_incidents_df['COUNTY_NAME'].str.lower().str.replace(' county', '')
 
-# Print out the unique values in COUNTY_NAME for inspection
-print("Unique COUNTY_NAME values in county_incidents_df:", county_incidents_df['COUNTY_NAME'].unique()[:50])  # Print only first 50 for brevity
-
-# Check if all California counties are correctly formatted in the dataframe
-california_counties_lower = [county.lower() for county in california_counties]
-print("California counties (lowercase):", california_counties_lower)
-
 # Filter the merged dataframe for California counties and years 2002 to 2018
+california_counties_lower = [county.lower() for county in california_counties]
 merged_df_california = county_incidents_df[
     (county_incidents_df['COUNTY_NAME'].isin(california_counties_lower)) & 
     (county_incidents_df['YEAR'] >= 2002) & 
     (county_incidents_df['YEAR'] <= 2018)
 ]
-
-# Print out debug information
-print("Filtered merged_df_california:", merged_df_california.head())
-print("Number of rows in county_incidents_df before filtering:", len(county_incidents_df))
-print("Number of rows in county_incidents_df after filtering:", len(merged_df_california))
 
 # Filter the instructional days lost dataframe for years 2002 to 2018
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
@@ -119,25 +108,20 @@ def update_chart(selected_county):
     disaster_data = county_agg_df[county_agg_df['county'].str.contains(selected_county.lower(), na=False)]
     enrollment_data = enrollment_df[(enrollment_df['county'] == selected_county.lower()) & (enrollment_df['year'] == 2018)]
 
-    # Print debug info
-    print(f"county_data for {selected_county}:", county_data)
-    print(f"disaster_data for {selected_county}:", disaster_data)
-    print(f"enrollment_data for {selected_county}:", enrollment_data)
-
     # Aggregate the students affected data by year
-    agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].sum().reset_index()
-    agg_df.rename(columns={'YEAR': 'Year'}, inplace=True)
+    agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
+    agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
 
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
 
-    # Print debug info
-    print(f"plot_df for {selected_county}:", plot_df)
+    # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
+    enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
 
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Bar(x=plot_df['Year'], y=plot_df['INCIDENT_ID'], name='Students Affected', marker_color='orange'),
+        go.Bar(x=plot_df['Year'], y=plot_df['Students_Affected'], name='Students Affected', marker_color='orange'),
         secondary_y=False
     )
     fig.add_trace(
@@ -150,7 +134,7 @@ def update_chart(selected_county):
         title='Impact of Wildfires on Instructional Days and Students Affected (2002-2018)',
         xaxis_title='Year',
         xaxis=dict(range=[2002, 2018]),
-        yaxis=dict(title='Students Affected', range=[global_students_min, global_students_max]),
+        yaxis=dict(title='Students Affected', range=[global_students_min, enrollment_2018]),
         yaxis2=dict(title='Instructional Days Lost per Student', range=[global_days_min, global_days_max]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
