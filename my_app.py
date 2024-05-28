@@ -29,29 +29,26 @@ disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
-# Debug: Show the merged dataframe
-print("Debug: disaster_enrollment_df after merge")
-print(disaster_enrollment_df.head())
-
-# Rename columns for clarity
-disaster_enrollment_df.rename(columns={'enrollment': 'county_enrollment'}, inplace=True)
+# Debug: Print the columns of disaster_enrollment_df after merge
+print("Debug: Columns of disaster_enrollment_df after merge")
+print(disaster_enrollment_df.columns)
 
 # Ensure the correct columns are numeric
 disaster_enrollment_df['days'] = pd.to_numeric(disaster_enrollment_df['days'], errors='coerce')
-disaster_enrollment_df['county_enrollment'] = pd.to_numeric(disaster_enrollment_df['county_enrollment'], errors='coerce')
+disaster_enrollment_df['enrollment'] = pd.to_numeric(disaster_enrollment_df['enrollment'], errors='coerce')
 
 # Calculate the total instructional days lost per school
-disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['county_enrollment']
+disaster_enrollment_df['total_days_lost_school'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment']
 
 # Aggregate the total days lost and enrollment at the county level
 county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_days_lost=pd.NamedAgg(column='total_days_lost_school', aggfunc='sum'),
-    total_enrollment=pd.NamedAgg(column='county_enrollment', aggfunc='sum')
+    total_enrollment=pd.NamedAgg(column='enrollment', aggfunc='sum')
 ).reset_index()
 
-# Debug: Show the aggregated dataframe
-print("Debug: county_agg_df")
-print(county_agg_df.head())
+# Ensure the aggregated columns are numeric
+county_agg_df['total_days_lost'] = pd.to_numeric(county_agg_df['total_days_lost'], errors='coerce')
+county_agg_df['total_enrollment'] = pd.to_numeric(county_agg_df['total_enrollment'], errors='coerce')
 
 # Calculate average instructional days lost per student at the county level
 county_agg_df['days_per_student'] = county_agg_df['total_days_lost'] / county_agg_df['total_enrollment']
@@ -116,8 +113,14 @@ def update_chart(selected_county):
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
     agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
 
+    print("Debug: agg_df")
+    print(agg_df.head())
+
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
+
+    print("Debug: plot_df")
+    print(plot_df.head())
 
     # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
     enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
