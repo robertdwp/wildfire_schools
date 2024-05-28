@@ -30,7 +30,7 @@ disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
 # Rename columns for clarity
-disaster_enrollment_df.rename(columns={'enrollment_y': 'county_enrollment'}, inplace=True)
+disaster_enrollment_df.rename columns={'enrollment_y': 'county_enrollment'}, inplace=True)
 
 # Ensure the correct columns are numeric
 disaster_enrollment_df['days'] = pd.to_numeric(disaster_enrollment_df['days'], errors='coerce')
@@ -72,9 +72,6 @@ merged_df_california = county_incidents_df[
     (county_incidents_df['YEAR'] >= 2002) & 
     (county_incidents_df['YEAR'] <= 2018)
 ]
-
-# Verify the merged dataframe
-print("Filtered merged_df_california:", merged_df_california.head())
 
 # Filter the instructional days lost dataframe for years 2002 to 2018
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
