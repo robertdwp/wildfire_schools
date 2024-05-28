@@ -73,6 +73,9 @@ merged_df_california = county_incidents_df[
     (county_incidents_df['YEAR'] <= 2018)
 ]
 
+# Verify the merged dataframe
+print("Filtered merged_df_california:", merged_df_california.head())
+
 # Filter the instructional days lost dataframe for years 2002 to 2018
 county_agg_df = county_agg_df[(county_agg_df['year'] >= 2002) & (county_agg_df['year'] <= 2018)]
 
