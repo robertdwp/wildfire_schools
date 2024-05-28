@@ -104,8 +104,8 @@ app.layout = dbc.Container([
 )
 def update_chart(selected_county):
     # Filter the data for the selected county
-    county_data = merged_df_california[merged_df_california['COUNTY_NAME'].str.contains(selected_county.lower(), na=False)]
-    disaster_data = county_agg_df[county_agg_df['county'].str.contains(selected_county.lower(), na=False)]
+    county_data = merged_df_california[merged_df_california['COUNTY_NAME'] == selected_county.lower()]
+    disaster_data = county_agg_df[county_agg_df['county'] == selected_county.lower()]
     enrollment_data = enrollment_df[(enrollment_df['county'] == selected_county.lower()) & (enrollment_df['year'] == 2018)]
 
     # Debug prints
@@ -157,4 +157,4 @@ application = app.server
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))
-    app.run_server(debug=True, port=port, host='0.0.0.0')
+    app.run_server(debug=True, port=port, host='0.0.0.0
