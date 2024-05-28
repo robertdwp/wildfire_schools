@@ -37,7 +37,6 @@ disaster_days_df = disaster_days_df[disaster_days_df['reason'].str.contains('|'.
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
 
-
 # Rename columns for clarity
 disaster_enrollment_df.rename(columns={'enrollment_x': 'school_enrollment', 'enrollment_y': 'county_enrollment'}, inplace=True)
 
@@ -130,7 +129,7 @@ def update_chart(selected_county):
         xaxis_title='Year',
         xaxis=dict(tickmode='array', tickvals=years),
         yaxis=dict(title='Students Affected', range=[0, max_students_affected]),
-        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, global_days_max]),
+        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, max_students_affected]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
