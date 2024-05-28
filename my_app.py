@@ -19,6 +19,10 @@ enrollment_df['year'] = enrollment_df['year'].apply(lambda x: int(x.split('-')[0
 # Rename columns for consistency
 enrollment_df.rename(columns={'County': 'county'}, inplace=True)
 
+# Debugging: Check the structure of enrollment_df
+print("Debug: enrollment_df")
+print(enrollment_df.head())
+
 # Ensure 'year' and 'county' columns are treated as lowercase in disaster days dataframe
 disaster_days_df['county'] = disaster_days_df['county'].str.lower()
 enrollment_df['county'] = enrollment_df['county'].str.lower()
@@ -26,8 +30,16 @@ enrollment_df['county'] = enrollment_df['county'].str.lower()
 # Ensure 'year' column is treated as integer in disaster days dataframe
 disaster_days_df['year'] = disaster_days_df['year'].astype(int)
 
+# Debugging: Check the structure of disaster_days_df
+print("Debug: disaster_days_df")
+print(disaster_days_df.head())
+
 # Merge disaster days dataframe with enrollment dataframe
 disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', 'county'], how='inner')
+
+# Debugging: Check the structure of disaster_enrollment_df
+print("Debug: disaster_enrollment_df after merge")
+print(disaster_enrollment_df.head())
 
 # Calculate the number of students impacted
 disaster_enrollment_df['students_impacted'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment']
@@ -37,6 +49,10 @@ county_agg_df = disaster_enrollment_df.groupby(['year', 'county']).agg(
     total_students_impacted=pd.NamedAgg(column='students_impacted', aggfunc='sum'),
     total_enrollment=pd.NamedAgg(column='enrollment', aggfunc='sum')
 ).reset_index()
+
+# Debugging: Check the structure of county_agg_df
+print("Debug: county_agg_df after aggregation")
+print(county_agg_df.head())
 
 # Define the list of California counties
 california_counties = [
