@@ -95,7 +95,6 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Layout of the app
 app.layout = dbc.Container([
-    html.H1('Impact of Wildfires on Instructional Days and Students Affected'),
     html.Label('Select County:'),
     dcc.Dropdown(
         id='county-dropdown',
