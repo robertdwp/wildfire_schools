@@ -86,6 +86,7 @@ california_counties = [
 
 # Calculate global min and max for standardizing y-axis scales
 # Filter the instructional days lost dataframe for years 2002 to 2018
+instructional_days_lost = disaster_days_df.groupby(['year', 'county'])['days'].sum().reset_index()
 instructional_days_lost = instructional_days_lost[(instructional_days_lost['year'] >= 2002) & (instructional_days_lost['year'] <= 2018)]
 global_days_max = instructional_days_lost['days'].max()
 
