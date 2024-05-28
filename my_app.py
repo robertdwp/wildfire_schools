@@ -41,7 +41,7 @@ disaster_enrollment_df = pd.merge(disaster_days_df, enrollment_df, on=['year', '
 print("Debug: disaster_enrollment_df after merge")
 print(disaster_enrollment_df.head())
 
-# Calculate the number of students impacted
+# Use the correct column name for enrollment
 disaster_enrollment_df['students_impacted'] = disaster_enrollment_df['days'] * disaster_enrollment_df['enrollment']
 
 # Aggregate the total students impacted and enrollment at the county level
