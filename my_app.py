@@ -99,7 +99,7 @@ app.layout = dbc.Container([
     dcc.Dropdown(
         id='county-dropdown',
         options=[{'label': county.title(), 'value': county.title()} for county in california_counties],
-        value='Lake'  # Default value
+        value='Butte'  # Default value
     ),
     dcc.Graph(id='wildfire-chart')
 ], fluid=True)
