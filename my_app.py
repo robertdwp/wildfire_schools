@@ -108,22 +108,12 @@ def update_chart(selected_county):
     disaster_data = county_agg_df[county_agg_df['county'] == selected_county.lower()]
     enrollment_data = enrollment_df[(enrollment_df['county'] == selected_county.lower()) & (enrollment_df['year'] == 2018)]
 
-    # Debug prints
-    print(f"county_data for {selected_county}:", county_data.head())
-    print(f"disaster_data for {selected_county}:", disaster_data.head())
-
     # Aggregate the students affected data by year
     agg_df = county_data.groupby('YEAR')['INCIDENT_ID'].count().reset_index()
     agg_df.rename(columns={'YEAR': 'Year', 'INCIDENT_ID': 'Students_Affected'}, inplace=True)
 
-    # Debug print
-    print(f"agg_df for {selected_county}:", agg_df.head())
-
     # Merge with disaster days data
     plot_df = pd.merge(agg_df, disaster_data, left_on='Year', right_on='year', how='left').fillna(0)
-
-    # Debug print
-    print(f"plot_df for {selected_county}:", plot_df.head())
 
     # Ensure the "Students Affected" y-axis max is set to the total number of students enrolled in the county in 2018
     enrollment_2018 = enrollment_data['enrollment'].values[0] if not enrollment_data.empty else global_students_max
@@ -157,4 +147,4 @@ application = app.server
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))
-    app.run_server(debug=True, port=port, host='0.0.0.0
+    app.run_server(debug=True, port=port, host='0.0.0.0')
