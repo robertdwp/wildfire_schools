@@ -120,11 +120,11 @@ def update_chart(selected_county):
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Bar(x=disaster_data['year'], y=disaster_data['affected_enrollment'], name='Students Affected', marker_color='orange'),
+        go.Bar(x=disaster_data['year'], y=disaster_data['affected_enrollment'], name='Students Affected by Wildfire-related Closure Days', marker_color='orange'),
         secondary_y=False
     )
     fig.add_trace(
-        go.Scatter(x=disaster_data['year'], y=disaster_data['days_per_student_affected'], name='Instructional Days Lost per Student (Affected Schools)', marker=dict(color='blue')),
+        go.Scatter(x=disaster_data['year'], y=disaster_data['days_per_student_affected'], name='Instructional Days Lost per Student (in Schools Affected by Wildfires)', marker=dict(color='blue')),
         secondary_y=True
     )
 
@@ -132,8 +132,8 @@ def update_chart(selected_county):
     fig.update_layout(
         xaxis_title='Year',
         xaxis=dict(tickmode='array', tickvals=years),
-        yaxis=dict(title='Students Affected', range=[0, max_students_affected]),
-        yaxis2=dict(title='Instructional Days Lost per Student (Affected Schools)', range=[0, 21]),
+        yaxis=dict(title='Students Affected by Wildfire-related Closure Days', range=[0, max_students_affected]),
+        yaxis2=dict(title='Instructional Days Lost per Student (in Schools Affected by Wildfires)', range=[0, 21]),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
