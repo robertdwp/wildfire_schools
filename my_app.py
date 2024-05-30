@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-from dash import Dash, dcc, html
+from dash import Dash, dcc, html, dash_table
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
