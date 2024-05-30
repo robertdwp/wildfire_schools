@@ -101,7 +101,7 @@ app.layout = dbc.Container([
         options=[{'label': county.title(), 'value': county.title()} for county in california_counties],
         value='Butte'  # Default value
     ),
-    dcc.Graph(id='wildfire-chart')
+    dcc.Graph(id='wildfire-chart'),
     dash_table.DataTable(
         id='data-table',
         columns=[
@@ -114,7 +114,6 @@ app.layout = dbc.Container([
         style_table={'overflowX': 'auto'},
         style_cell={'textAlign': 'left'},
     )
-
 ], fluid=True)
 
 # Callback to update the chart based on selected county
