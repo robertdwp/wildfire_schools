@@ -105,11 +105,11 @@ app.layout = dbc.Container([
     dash_table.DataTable(
         id='data-table',
         columns=[
-            {'name': 'Year', 'id': disaster_data['year']},
-            {'name': 'Total Students Affected', 'id': disaster_data['affected_enrollment']},
+            {'name': 'Year', 'id': county_agg_df['year']},
+            {'name': 'Total Students Affected', 'id': county_agg_df['affected_enrollment']},
             {'name': 'Total Days Lost', 'id': county_agg_df['total_days_lost']},
             {'name': 'Total Enrollment', 'id': enrollment_2018_df.loc[selected_county, 'enrollment']},
-            {'name': 'Instructional Days Lost per Student', 'id': disaster_data['days_per_student_affected']}
+            {'name': 'Instructional Days Lost per Student', 'id': county_agg_df['days_per_student_affected']}
         ],
         style_table={'overflowX': 'auto'},
         style_cell={'textAlign': 'left'},
