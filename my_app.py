@@ -101,10 +101,10 @@ app.layout = dbc.Container([
         id='data-table',
         columns=[
             {'name': 'Year', 'id': 'year'},
-            {'name': 'Students Affected by Wildfire-related Closure Days', 'id': 'students_affected'},
+            {'name': 'Total Students Affected', 'id': 'students_affected'},
             {'name': 'Total Days Lost', 'id': 'total_days_lost'},
             {'name': 'Total Enrollment', 'id': 'total_enrollment'},
-            {'name': 'Instructional Days Lost per Student due to Wildfires', 'id': 'days_per_student'}
+            {'name': 'Instructional Days Lost per Student', 'id': 'days_per_student'}
         ],
         data=[]
     )
