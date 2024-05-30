@@ -119,7 +119,7 @@ app.layout = dbc.Container([
 
 # Callback to update the chart based on selected county
 @app.callback(
-    Output('wildfire-chart', 'figure'),
+    [Output('wildfire-chart', 'figure'),
      Output('data-table', 'data')],
     [Input('county-dropdown', 'value')]
 )
