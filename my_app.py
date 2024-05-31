@@ -132,8 +132,8 @@ def update_chart(selected_county):
     fig.update_layout(
         xaxis_title='Year',
         xaxis=dict(tickmode='array', tickvals=years),
-        yaxis=dict(title='Students Affected', range=[0, max_students_affected]),
-        yaxis2=dict(title='Instructional Days Lost per Student', range=[0, 21]),
+        yaxis=dict(title='Students Affected', range=[0, max_students_affected], showgrid=False),
+        yaxis2=dict(title='Instructional Days Lost per Student', range=[0, 21], showgrid=False),
         legend=dict(x=0.01, y=0.99),
         margin=dict(l=40, r=40, t=40, b=40)
     )
